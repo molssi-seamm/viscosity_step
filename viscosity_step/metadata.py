@@ -130,16 +130,52 @@ type : str
 units : str
     Optional units for the result. If present, the value should be in these units.
 """
-# metadata["results"] = {
-#     "total_energy": {
-#         "calculation": [
-#             "energy",
-#             "optimization",
-#         ],
-#         "description": "The total energy",
-#         "dimensionality": "scalar",
-#         "property": "total energy#Viscosity#{model}",
-#         "type": "float",
-#         "units": "E_h",
-#     },
-# }
+metadata["results"] = {
+    "viscosity": {
+        "description": "The shear viscosity, by Green-Kubo",
+        "dimensionality": "scalar",
+        "property": "viscosity#Green-Kubo#{model}",
+        "type": "float",
+        "units": "mPa*s",
+    },
+    "viscosity,stderr": {
+        "description": "The standard error of the shear viscosity, by Green-Kubo",
+        "dimensionality": "scalar",
+        "property": "viscosity,stderr#Green-Kubo#{model}",
+        "type": "float",
+        "units": "mPa*s",
+    },
+    "viscosity (Helfand)": {
+        "description": "The shear viscosity, from the Helfand moments",
+        "dimensionality": "scalar",
+        "property": "viscosity#Helfand#{model}",
+        "type": "float",
+        "units": "mPa*s",
+    },
+    "viscosity (Helfand),stderr": {
+        "description": (
+            "The standard error of the shear viscosity, from the Helfand moments"
+        ),
+        "dimensionality": "scalar",
+        "property": "viscosity,stderr#Helfand#{model}",
+        "type": "float",
+        "units": "mPa*s",
+    },
+    "T": {
+        "description": "The mean temperature of the MD",
+        "dimensionality": "scalar",
+        "type": "float",
+        "units": "K",
+    },
+    "V": {
+        "description": "The mean volume of the cell",
+        "dimensionality": "scalar",
+        "type": "float",
+        "units": "Å^3",
+    },
+    "nruns": {
+        "description": "The number of runs or blocks averaged",
+        "dimensionality": "scalar",
+        "type": "integer",
+    },
+}

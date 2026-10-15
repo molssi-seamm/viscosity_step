@@ -1,3 +1,6 @@
+numpy
 seamm
+seamm-md-analysis>=2026.10.15.2
 seamm-util
 seamm-widgets
+tabulate

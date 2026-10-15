@@ -4,28 +4,36 @@ Getting Started
 
 Installation
 ============
-The Viscosity step is probably already installed in your SEAMM
-environment, but if not or if you wish to check, follow the directions for the `SEAMM
-Installer`_. The graphical installer is the easiest to use. In the SEAMM conda
-environment, simply type:: 
+The Viscosity step is installed with the rest of SEAMM by ``seamm-manager``. To add it
+to an existing installation::
 
-  seamm-installer
+  seamm-manager install viscosity-step
 
-or use the shortcut if you installed one. Switch to the second tab, `Components`, and
-check for `viscosity-step`. If it is not installed, or
-can be updated, check the box next to it and click `Install selected` or `Update
-selected` as appropriate.
+See the `SEAMM installation`_ documentation for more.
 
-The non-graphical installer is also straightforward::
+.. _SEAMM installation: https://molssi-seamm.github.io/installation/index.html
 
-  seamm-installer install --update viscosity-step
+An example
+==========
+The viscosity of water at 298 K, analyzing one production run:
 
-will ensure both that it is installed and up-to-date.
+#. **Forcefield**, choosing a water model, then **Packmol** to fill a cubic cell with
+   a few hundred water molecules at the experimental density.
+#. **LAMMPS**, with these sub-steps:
 
-.. _SEAMM Installer: https://molssi-seamm.github.io/installation/index.html
+   * Initialization, Minimization and Velocities;
+   * NPT dynamics for about 100 ps to equilibrate the density;
+   * NVT dynamics for the production run, a few nanoseconds, with **Sample the
+     pressure tensor** set to every 5 fs on its trajectory tab, and the centres of
+     mass of the molecules sampled every 1 ps if the diffusivity is wanted too.
 
-Replace this!
-=============
-Put an example or two here....
+#. **Viscosity**, with **MD to analyze** set to "the last MD run". The run is divided
+   into 5 blocks to estimate the errors.
+#. Optionally **Diffusivity**, also analyzing the last MD run, which uses this
+   viscosity for its finite-size correction.
 
-That should be enough to get started. For more detail about the functionality in this plug-in, see the :ref:`User Guide <user-guide>`.
+If the pressure tensor is not sampled often enough, the flowchart is refused when it
+is checked or submitted, with a message saying what to change.
+
+That should be enough to get started. For more detail about the functionality in this
+plug-in, see the :ref:`User Guide <user-guide>`.
