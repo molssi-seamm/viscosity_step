@@ -1,1 +1,5 @@
 Property,Type,Units,Description,URL
+viscosity#Green-Kubo#{model},float,mPa*s,"The shear viscosity by Green-Kubo using {model}",https://en.wikipedia.org/wiki/Viscosity
+"viscosity,stderr#Green-Kubo#{model}",float,mPa*s,"The standard error of the shear viscosity by Green-Kubo using {model}",https://en.wikipedia.org/wiki/Viscosity
+viscosity#Helfand#{model},float,mPa*s,"The shear viscosity from the Helfand moments using {model}",https://en.wikipedia.org/wiki/Viscosity
+"viscosity,stderr#Helfand#{model}",float,mPa*s,"The standard error of the shear viscosity from the Helfand moments using {model}",https://en.wikipedia.org/wiki/Viscosity

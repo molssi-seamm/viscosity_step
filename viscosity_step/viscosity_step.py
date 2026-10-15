@@ -32,8 +32,8 @@ class ViscosityStep(object):
     """
 
     my_description = {
-        "description": "An interface for Viscosity",
-        "group": "Simulations",
+        "description": "The shear viscosity from MD, by Green-Kubo and Helfand moments",
+        "group": "Properties",
         "name": "Viscosity",
     }
 

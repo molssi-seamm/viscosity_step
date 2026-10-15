@@ -10,7 +10,7 @@ SEAMM Viscosity Plug-in
    :target: https://github.com/molssi-seamm/viscosity_step/actions
    :alt: Build Status
 
-.. image:: https://codecov.io/gh/molssi-seamm/viscosity_step/branch/master/graph/badge.svg
+.. image:: https://codecov.io/gh/molssi-seamm/viscosity_step/branch/main/graph/badge.svg
    :target: https://codecov.io/gh/molssi-seamm/viscosity_step
    :alt: Code Coverage
 
@@ -26,7 +26,8 @@ SEAMM Viscosity Plug-in
    :target: https://pypi.python.org/pypi/viscosity_step
    :alt: PyPi VERSION
 
-A SEAMM plug-in for Viscosity
+A SEAMM plug-in for the shear viscosity of liquids from equilibrium molecular
+dynamics.
 
 * Free software: BSD-3-Clause
 * Documentation: https://molssi-seamm.github.io/viscosity_step/index.html
@@ -35,7 +36,12 @@ A SEAMM plug-in for Viscosity
 Features
 --------
 
-* Please edit this section!
+* The shear viscosity by Green-Kubo and from the Helfand moments, averaging the
+  five independent shear components of the pressure tensor.
+* Runs its own MD several times, or analyzes MD run earlier in the flowchart or in
+  other jobs, from the ``md.h5md`` files the LAMMPS step writes.
+* Checks before the job runs that the MD samples the pressure tensor often enough.
+* Passes its result to a later Diffusivity step for the Yeh-Hummer correction.
 
 Acknowledgements
 ----------------
