@@ -1,0 +1,40 @@
+title: Regression - SPC/E water viscosity and diffusivity
+description: 512 rigid SPC/E waters at 0.997 g/mL and 298.15 K. NVT 100 ps, then NVT 3 ns sampling the pressure tensor every 5 fs and the centres of mass every 1 ps; Viscosity, then Diffusivity (MSD, Yeh-Hummer from the Viscosity step), 5 blocks. Pass if the viscosity is 0.62-0.82 mPa*s and D0 is 2.75-3.05e-9 m^2/s.
+steps:
+- Forcefield:
+    forcefield_file: nacl_water.frc
+- Packmol:
+    molecules:
+    - component: fluid
+      source: SMILES
+      definition: O
+      count: '1'
+    periodic: 'Yes'
+    shape: cubic
+    fluid amount: rounding this number of molecules
+    density: '0.997'
+    approximate number of molecules: 512
+- LAMMPS:
+    steps:
+    - Initialization
+    - Velocities:
+        T: '298.15'
+    - NVT:
+        time: '100'
+        timestep: '2'
+        T0: '298.15'
+        T1: '298.15'
+    - NVT:
+        time: '3000'
+        timestep: '2'
+        T0: '298.15'
+        T1: '298.15'
+        pressure tensor: by time interval
+        pressure tensor rate: '5'
+        com positions: by time interval
+        com positions rate: '1000'
+- Viscosity:
+    md source: the last MD run
+- Diffusivity:
+    md source: the last MD run
+    approach: Mean Square Displacement (MSD)
