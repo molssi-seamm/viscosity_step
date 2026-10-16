@@ -1,6 +1,12 @@
 =======
 History
 =======
+2026.10.15.1 -- Internal: a regression test against SPC/E water
+    * ``regression/spce`` holds a flowchart computing the viscosity and diffusion
+      coefficient of rigid SPC/E water, and a script checking them against published
+      values. It is run by hand after changes that could affect the results; the new
+      "Regression" page in the developer guide describes it and records its results.
+
 2026.10.15 -- First release: the shear viscosity from MD
     * Calculates the shear viscosity of a liquid from equilibrium MD by Green-Kubo
       and from the Helfand moments, averaging the five independent shear components

@@ -1,0 +1,246 @@
+#!/usr/bin/env run_flowchart
+format: MolSSI flowchart 3.0
+metadata:
+  title: Regression - SPC/E water viscosity and diffusivity
+  description: 512 rigid SPC/E waters at 0.997 g/mL and 298.15 K. NVT 100 ps, then NVT 3 ns
+    sampling the pressure tensor every 5 fs and the centres of mass every 1 ps; Viscosity,
+    then Diffusivity (MSD, Yeh-Hummer from the Viscosity step), 5 blocks. Pass if the viscosity
+    is 0.62-0.82 mPa*s and D0 is 2.75-3.05e-9 m^2/s.
+  keywords: []
+  creators:
+  - name: Saxe, Paul
+    orcid: 0000-0002-8641-9448
+    affiliation: The Molecular Sciences Software Institute (MolSSI)
+  grants: ['10.13039/100000001::2136142']
+requires:
+  diffusivity_step: 2026.10.15.3
+  forcefield_step: 2026.10.12.1
+  lammps_step: 2026.10.15.4
+  packmol_step: 2026.10.15
+  seamm: 2026.10.15
+  viscosity_step: 2026.10.15
+digest:
+  sha256: dd5d316088e231379535460c86693410502a8edaaa365e3bd8b8b60b4cacb0da
+  sha256_strict: 5751638729ecb7d0297226487f514bae53782a1d9b564cdad6b86e2358c9d8d6
+steps:
+- step: Forcefield
+  parameters:
+    task: setup forcefield
+    forcefield_file: nacl_water.frc
+    forcefield: default
+    elements: ''
+    potentials: ''
+- step: Packmol
+  parameters:
+    molecules:
+    - component: fluid
+      source: SMILES
+      definition: O
+      count: '1'
+    periodic: 'Yes'
+    shape: cubic
+    dimensions: calculated from the density
+    fluid amount: rounding this number of molecules
+    density: ['0.997', g/ml]
+    volume: [8.0, nm^3]
+    temperature: [298.15, K]
+    pressure: [1.0, atm]
+    gap: [2.0, Å]
+    edge length: [20, Å]
+    a: [20, Å]
+    b: [20, Å]
+    c: [20, Å]
+    a_ratio: 1
+    b_ratio: 1
+    c_ratio: 1
+    diameter: [20.0, Å]
+    solvent thickness: [10.0, Å]
+    approximate number of molecules: 512
+    approximate number of atoms: 2000
+    proportions: by number of molecules
+    assign forcefield: If not assigned
+    structure handling: Overwrite the current configuration
+    subsequent structure handling: Create a new system and configuration
+    system name: keep current name
+    configuration name: use Canonical SMILES string
+- step: LAMMPS
+  steps:
+  - step: Initialization
+    parameters:
+      cutoff: [10.0, Å]
+      kspace_method: automatic
+      kspace_accuracy: 1.0e-05
+      kspace_smallq: 1.0e-05
+      atomic charges: default for forcefield
+      qeq convergence: 1.0e-06
+      qeq iterations: 100
+      charged_atom_fraction_cutoff: 0.1
+      ewald_atom_cutoff: 1000
+      msm_atom_cutoff: 5000
+      tail_correction: 'yes'
+      shift_nonbond: 'no'
+      rigid_waters: 'yes'
+      fix_XH_bond_lengths: none
+  - step: Velocities
+    parameters:
+      method: using a random distribution
+      T: ['298.15', K]
+      seed: random
+      remove_momentum: remove any translational and, for molecular systems, rotational momentum
+        (default)
+  - step: NVT
+    parameters:
+      results: &id001 {}
+      create tables: 'yes'
+      structure handling: Overwrite the current configuration
+      subsequent structure handling: Create a new system and configuration
+      system name: keep current name
+      configuration name: simulated with {model}
+      run_control: For a fixed length of simulated time.
+      time: ['100', ps]
+      maximum_time: [1.0, ns]
+      timestep: ['2', fs]
+      control_properties: &id002 {}
+      sampling: ['50', fs]
+      constrain X-H bonds: 'no'
+      atomic positions: never
+      atomic positions rate: [100, fs]
+      atomic positions number of samples: 1000
+      com positions: never
+      com positions rate: [100, fs]
+      com positions number of samples: 1000
+      atomic velocities: never
+      atomic velocities rate: [100, fs]
+      atomic velocities number of samples: 1000
+      com velocities: never
+      com velocities rate: [100, fs]
+      com velocities number of samples: 1000
+      heat flux: never
+      heat flux rate: [100, fs]
+      heat flux number of samples: 1000
+      use centroid stress: 'yes'
+      pressure tensor: never
+      pressure tensor rate: [100, fs]
+      pressure tensor number of samples: 1000
+      trajectory: never
+      trajectory rate: [100, fs]
+      trajectory number of samples: 1000
+      trajectory forces: 'no'
+      trajectory velocities: 'no'
+      trajectory save: 'no'
+      trajectory system name: trajectory
+      make current: 'no'
+      trajectory export: 'no'
+      trajectory extxyz: 'no'
+      trajectory extxyz filename: trajectory.extxyz.gz
+      trajectory extxyz append: 'no'
+      trajectory extxyz skip frames: '0'
+      thermostat: Nose-Hoover
+      T0: ['298.15', K]
+      T1: ['298.15', K]
+      Tdamp: [100.0, fs]
+      Tchain: 3
+      Tloop: 1
+      drag: 0.0
+      seed: random
+      frequency: [100.0, fs]
+      window: [20.0, K]
+      fraction: 1.0
+  - step: NVT
+    parameters:
+      results: *id001
+      create tables: 'yes'
+      structure handling: Overwrite the current configuration
+      subsequent structure handling: Create a new system and configuration
+      system name: keep current name
+      configuration name: simulated with {model}
+      run_control: For a fixed length of simulated time.
+      time: ['3000', ps]
+      maximum_time: [1.0, ns]
+      timestep: ['2', fs]
+      control_properties: *id002
+      sampling: ['50', fs]
+      constrain X-H bonds: 'no'
+      atomic positions: never
+      atomic positions rate: [100, fs]
+      atomic positions number of samples: 1000
+      com positions: by time interval
+      com positions rate: ['1000', fs]
+      com positions number of samples: 1000
+      atomic velocities: never
+      atomic velocities rate: [100, fs]
+      atomic velocities number of samples: 1000
+      com velocities: never
+      com velocities rate: [100, fs]
+      com velocities number of samples: 1000
+      heat flux: never
+      heat flux rate: [100, fs]
+      heat flux number of samples: 1000
+      use centroid stress: 'yes'
+      pressure tensor: by time interval
+      pressure tensor rate: ['5', fs]
+      pressure tensor number of samples: 1000
+      trajectory: never
+      trajectory rate: [100, fs]
+      trajectory number of samples: 1000
+      trajectory forces: 'no'
+      trajectory velocities: 'no'
+      trajectory save: 'no'
+      trajectory system name: trajectory
+      make current: 'no'
+      trajectory export: 'no'
+      trajectory extxyz: 'no'
+      trajectory extxyz filename: trajectory.extxyz.gz
+      trajectory extxyz append: 'no'
+      trajectory extxyz skip frames: '0'
+      thermostat: Nose-Hoover
+      T0: ['298.15', K]
+      T1: ['298.15', K]
+      Tdamp: [100.0, fs]
+      Tchain: 3
+      Tloop: 1
+      drag: 0.0
+      seed: random
+      frequency: [100.0, fs]
+      window: [20.0, K]
+      fraction: 1.0
+- step: Viscosity
+  parameters:
+    md source: the last MD run
+    md files: ''
+    number of blocks: 5
+    nruns: '5'
+    errors: continue to next run
+  steps: []
+- step: Diffusivity
+  parameters:
+    md source: the last MD run
+    md files: ''
+    number of blocks: 5
+    approach: Mean Square Displacement (MSD)
+    nruns: '5'
+    hydrodynamic correction: 'yes'
+    viscosity source: the preceding Viscosity step
+    viscosity: ['0.0', cP]
+    msd_fit_start: '0.1'
+    msd_fit_end: '0.6'
+    helfand_fit_start: '0.35'
+    helfand_fit_end: '1.00'
+    maximum Helfand Integral length: 1000
+    errors: continue to next run
+    results: {}
+  steps: []
+layout:
+  '0': [150, 35]
+  '1': [150, 105]
+  '2': [150, 175]
+  '3': [150, 245]
+  '3.0': [150, 35]
+  '3.1': [150, 105]
+  '3.2': [150, 175]
+  '3.3': [150, 245]
+  '3.4': [150, 315]
+  '4': [150, 315]
+  '4.0': [150, 35]
+  '5': [150, 385]
+  '5.0': [150, 35]

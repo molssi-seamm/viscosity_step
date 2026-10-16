@@ -9,6 +9,7 @@ Contents:
    installation
    usage
    contributing
+   regression
 
 Campaigns
 ---------
