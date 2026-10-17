@@ -1,6 +1,6 @@
 numpy
-seamm
-seamm-md-analysis>=2026.10.15.2
+seamm>=2026.10.17.1
+seamm-md-analysis>=2026.10.17.4
 seamm-util
 seamm-widgets
 tabulate
