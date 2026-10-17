@@ -143,3 +143,29 @@ def test_requirements():
     (need,) = req.needs
     assert need.names == ["pressure_tensor"]
     assert need.max_time.m_as("fs") == 5
+
+
+def test_estimate_uses_student_t():
+    # The table's ± is Student's t times the standard error over the blocks; the
+    # stored error is the standard error
+    from seamm_md_analysis.stats import t_factor
+
+    rng = np.random.default_rng(11)
+    step = node()
+    for block in step._split_into_blocks((pressure_tensor(rng, 100_000), DT, T, V), 5):
+        step.process_run(block)
+    results = step._fit()
+    gk = results["Green-Kubo"][-1]
+    estimate = step._estimate(gk, "blocks")
+    assert estimate.value == pytest.approx(gk["value"])
+    assert estimate.stderr == pytest.approx(gk["stderr_runs"])
+    assert estimate.n == 5
+    assert estimate.ci95 == pytest.approx(t_factor(5) * estimate.stderr)
+    assert "blocks" in estimate.describe_error()
+    # The five components of an isotropic fluid agree
+    components = step._component_samples(results["Green-Kubo"])
+    assert components.shape == (5, 5)
+
+
+def test_requirements_dynamics():
+    assert node().md_requirements().dynamics

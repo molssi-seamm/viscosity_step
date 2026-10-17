@@ -4,10 +4,8 @@
 
 import pprint  # noqa: F401
 import tkinter as tk
-import tkinter.ttk as ttk
 
 from .viscosity_parameters import ViscosityParameters
-from seamm_md_analysis.step_support import read_files, run_own_md
 import seamm
 from seamm_util import ureg, Q_, units_class  # noqa: F401
 import seamm_widgets as sw
@@ -97,138 +95,44 @@ class TkViscosity(seamm.TkNode):
         self.create_dialog()
 
     def create_dialog(self):
-        """
-        Create the dialog. A set of widgets will be chosen by default
-        based on what is specified in the Viscosity parameterss
-        module.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
+        """Create the dialog, with the widgets for the parameters.
 
         See Also
         --------
         TkViscosity.reset_dialog
         """
+        frame = super().create_dialog(title="Viscosity")
 
-        frame = super().create_dialog(title="Viscosity", widget="notebook")
-        # make it large!
-        screen_w = self.dialog.winfo_screenwidth()
-        screen_h = self.dialog.winfo_screenheight()
-        w = int(0.9 * screen_w)
-        h = int(0.8 * screen_h)
-        x = int(0.05 * screen_w / 2)
-        y = int(0.1 * screen_h / 2)
-
-        self.dialog.geometry(f"{w}x{h}+{x}+{y}")
-
-        # Add a frame for the flowchart
-        notebook = self["notebook"]
-        flowchart_frame = ttk.Frame(notebook)
-        self["flowchart frame"] = flowchart_frame
-        notebook.add(flowchart_frame, text="Flowchart", sticky=tk.NSEW)
-
-        self.tk_subflowchart = seamm.TkFlowchart(
-            master=flowchart_frame,
-            flowchart=self.node.subflowchart,
-            namespace=self.namespace,
-        )
-        self.tk_subflowchart.draw()
-
-        # Fill in the control parameters
-        # Shortcut for parameters
         P = self.node.parameters
-
-        # viscosity frame to isolate widgets
-        frame = self["viscosity_frame"] = ttk.LabelFrame(
-            self["frame"],
-            borderwidth=4,
-            relief="sunken",
-            text="Viscosity",
-            labelanchor="n",
-            padding=10,
-        )
-
         for key in ViscosityParameters.parameters:
             self[key] = P[key].widget(frame)
+            if hasattr(self[key], "combobox"):
+                self[key].combobox.bind("<<ComboboxSelected>>", self.reset_dialog)
 
-        # and binding to change as needed
-        for key in ("md source",):
-            self[key].combobox.bind("<<ComboboxSelected>>", self.reset_viscosity_frame)
-
-        # and lay them out
         self.reset_dialog()
 
     def reset_dialog(self, widget=None):
-        """Layout the widgets in the dialog.
-
-        The widgets are chosen by default from the information in
-        Viscosity parameters.
-
-        This function simply lays them out row by row with
-        aligned labels. You may wish a more complicated layout that
-        is controlled by values of some of the control parameters.
-        If so, edit or override this method
+        """Lay out the widgets that apply, given the choices made.
 
         Parameters
         ----------
         widget : Tk Widget = None
-
-        Returns
-        -------
-        None
-
-        See Also
-        --------
-        TkViscosity.create_dialog
         """
-
-        row = 0
-
-        self["viscosity_frame"].grid(row=row, column=0, sticky=tk.EW, pady=10)
-        row += 1
-        self.reset_viscosity_frame()
-
-        return row
-
-    def reset_viscosity_frame(self, widget=None):
-        """Layout the widgets in the viscosity frame
-        as needed for the current state"""
-
-        source = self["md source"].get()
-        own_md = source == run_own_md
-
-        # The sub-flowchart is used only when this step runs its own MD
-        notebook = self["notebook"]
-        if own_md:
-            notebook.add(self["flowchart frame"])
-        else:
-            notebook.hide(self["flowchart frame"])
-
-        frame = self["viscosity_frame"]
+        frame = self["frame"]
         for slave in frame.grid_slaves():
             slave.grid_forget()
 
+        P = self.node.parameters
+        values = {key: self[key].get() for key in ViscosityParameters.parameters}
         row = 0
         widgets = []
-        if own_md:
-            keys = ("md source", "nruns", "errors")
-        elif source == read_files:
-            keys = ("md source", "md files", "number of blocks")
-        else:
-            keys = ("md source", "number of blocks")
-        for key in keys:
-            self[key].grid(row=row, column=0, columnspan=2, sticky=tk.W)
-            widgets.append(self[key])
-            row += 1
-
+        for key in ViscosityParameters.parameters:
+            if P.applies(key, values):
+                self[key].grid(row=row, column=0, sticky=tk.W)
+                widgets.append(self[key])
+                row += 1
         sw.align_labels(widgets, sticky=tk.E)
-
-        frame.columnconfigure(0, minsize=50)
+        return row
 
     def right_click(self, event):
         """
