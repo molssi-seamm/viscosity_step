@@ -32,6 +32,7 @@ from seamm_md_analysis.plots import plot_components
 from seamm_md_analysis.requirements import Need, Requirements
 from seamm_md_analysis.stats import fmt_err
 from seamm_md_analysis.step_support import (
+    print_details,
     check_md_flowchart,
     md_inputs,
     publish_viscosity,
@@ -610,8 +611,9 @@ class Viscosity(seamm.Node):
         )
         length = len(text.splitlines()[0])
         title = f"Shear viscosity by component ({UNITS})".center(length)
-        printer.verbose(
-            __("\n" + title + "\n" + text + "\n", indent=8 * " ", wrap=False)
+        print_details(
+            printer,
+            str(__("\n" + title + "\n" + text + "\n", indent=8 * " ", wrap=False)),
         )
 
     def _print_samples(self, results, source):
@@ -636,8 +638,9 @@ class Viscosity(seamm.Node):
             )
             length = len(text.splitlines()[0])
             title = f"η by {what.lower()}, {method} ({UNITS})".center(length)
-            printer.verbose(
-                __("\n" + title + "\n" + text + "\n", indent=8 * " ", wrap=False)
+            print_details(
+                printer,
+                str(__("\n" + title + "\n" + text + "\n", indent=8 * " ", wrap=False)),
             )
 
     def _isotropy(self):
