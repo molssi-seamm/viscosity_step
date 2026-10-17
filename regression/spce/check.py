@@ -27,11 +27,14 @@ def read(path):
         path = path / "job.out"
     text = path.read_text()
 
-    # The last viscosity table: the first "average" row is Green-Kubo
-    start = text.rfind("Shear viscosity (mPa*s)")
+    # The last viscosity table: the row "η (Green-Kubo)", or in the tables before
+    # phase 8 the first "average" row
+    start = text.rfind("Shear viscosity")
     if start < 0:
         raise RuntimeError(f"No viscosity table in {path}")
-    match = re.search(r"│\s*average\s*│\s*([-0-9.]+)", text[start:])
+    match = re.search(r"│\s*η \(Green-Kubo\)\s*│\s*([-0-9.]+)", text[start:])
+    if match is None:
+        match = re.search(r"│\s*average\s*│\s*([-0-9.]+)", text[start:])
     viscosity = float(match.group(1))
 
     # The last table of diffusion coefficients: the total, already corrected

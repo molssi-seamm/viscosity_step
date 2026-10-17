@@ -13,23 +13,23 @@ metadata:
     affiliation: The Molecular Sciences Software Institute (MolSSI)
   grants: ['10.13039/100000001::2136142']
 requires:
-  diffusivity_step: 2026.10.15.3
-  forcefield_step: 2026.10.12.1
-  lammps_step: 2026.10.15.4
-  packmol_step: 2026.10.15
-  seamm: 2026.10.15
-  viscosity_step: 2026.10.15
+  diffusivity_step: 2026.10.15.3+1.gcc5cf33
+  lammps_step: 2026.10.17.1+5.geac1f7f
+  model_chemistry_step: 2026.10.12.1
+  packmol_step: 2026.10.17
+  seamm: 2026.10.17+1.gc95cb7b
+  viscosity_step: 2026.10.15.1+3.g1f94a7a.dirty
 digest:
-  sha256: dd5d316088e231379535460c86693410502a8edaaa365e3bd8b8b60b4cacb0da
-  sha256_strict: 5751638729ecb7d0297226487f514bae53782a1d9b564cdad6b86e2358c9d8d6
+  sha256: 6c6ed48dba9d97c612773ee54031eb95248648e798b5d73f9fa2fce2489445b5
+  sha256_strict: dcd3f90af37d93742d9f02654f2ef0dd5f1a770d8f62a3d99450adf9d272276f
 steps:
-- step: Forcefield
+- step: Model Chemistry
   parameters:
-    task: setup forcefield
-    forcefield_file: nacl_water.frc
-    forcefield: default
-    elements: ''
-    potentials: ''
+    model_chemistry: FF@nacl_water
+    periodic: 'no'
+    basis elements: ''
+    checkpoint: ''
+    engine options: ''
 - step: Packmol
   parameters:
     molecules:
@@ -62,7 +62,7 @@ steps:
     structure handling: Overwrite the current configuration
     subsequent structure handling: Create a new system and configuration
     system name: keep current name
-    configuration name: use Canonical SMILES string
+    configuration name: keep current name
 - step: LAMMPS
   steps:
   - step: Initialization
@@ -75,11 +75,10 @@ steps:
       qeq convergence: 1.0e-06
       qeq iterations: 100
       charged_atom_fraction_cutoff: 0.1
-      ewald_atom_cutoff: 1000
+      ewald_atom_cutoff: 750
       msm_atom_cutoff: 5000
       tail_correction: 'yes'
       shift_nonbond: 'no'
-      rigid_waters: 'yes'
       fix_XH_bond_lengths: none
   - step: Velocities
     parameters:
@@ -114,6 +113,7 @@ steps:
       atomic velocities number of samples: 1000
       com velocities: never
       com velocities rate: [100, fs]
+      keep sampled files: 'no'
       com velocities number of samples: 1000
       heat flux: never
       heat flux rate: [100, fs]
@@ -135,6 +135,8 @@ steps:
       trajectory extxyz filename: trajectory.extxyz.gz
       trajectory extxyz append: 'no'
       trajectory extxyz skip frames: '0'
+      extra commands: ''
+      extra properties: &id003 []
       thermostat: Nose-Hoover
       T0: ['298.15', K]
       T1: ['298.15', K]
@@ -172,6 +174,7 @@ steps:
       atomic velocities number of samples: 1000
       com velocities: never
       com velocities rate: [100, fs]
+      keep sampled files: 'no'
       com velocities number of samples: 1000
       heat flux: never
       heat flux rate: [100, fs]
@@ -193,6 +196,8 @@ steps:
       trajectory extxyz filename: trajectory.extxyz.gz
       trajectory extxyz append: 'no'
       trajectory extxyz skip frames: '0'
+      extra commands: ''
+      extra properties: *id003
       thermostat: Nose-Hoover
       T0: ['298.15', K]
       T1: ['298.15', K]
@@ -209,16 +214,12 @@ steps:
     md source: the last MD run
     md files: ''
     number of blocks: 5
-    nruns: '5'
-    errors: continue to next run
-  steps: []
 - step: Diffusivity
   parameters:
     md source: the last MD run
     md files: ''
     number of blocks: 5
     approach: Mean Square Displacement (MSD)
-    nruns: '5'
     hydrodynamic correction: 'yes'
     viscosity source: the preceding Viscosity step
     viscosity: ['0.0', cP]
@@ -227,9 +228,7 @@ steps:
     helfand_fit_start: '0.35'
     helfand_fit_end: '1.00'
     maximum Helfand Integral length: 1000
-    errors: continue to next run
     results: {}
-  steps: []
 layout:
   '0': [150, 35]
   '1': [150, 105]
@@ -241,6 +240,4 @@ layout:
   '3.3': [150, 245]
   '3.4': [150, 315]
   '4': [150, 315]
-  '4.0': [150, 35]
   '5': [150, 385]
-  '5.0': [150, 35]

@@ -5,7 +5,9 @@ the MD to analyze. Skipped when no display is available."""
 
 import pytest
 
-from seamm_md_analysis.step_support import read_files, run_own_md, source_choices
+from seamm_md_analysis.step_support import read_files, source_choices
+
+from viscosity_step import ViscosityParameters
 
 
 @pytest.fixture()
@@ -38,14 +40,13 @@ def tk_node():
 def test_dialog_layouts(tk_node):
     tk_node.create_dialog()
     tk_node.reset_dialog()
-    notebook = tk_node["notebook"]
-    tab = str(tk_node["flowchart frame"])
+    P = tk_node.node.parameters
     for source in source_choices:
         tk_node["md source"].set(source)
-        tk_node.reset_viscosity_frame()
-        own = source == run_own_md
-        assert (tk_node["nruns"].grid_info() != {}) == own
-        assert (tk_node["errors"].grid_info() != {}) == own
+        tk_node.reset_dialog()
+        values = {k: tk_node[k].get() for k in ViscosityParameters.parameters}
+        for key in ViscosityParameters.parameters:
+            shown = tk_node[key].grid_info() != {}
+            assert shown == P.applies(key, values), (key, source)
         assert (tk_node["md files"].grid_info() != {}) == (source == read_files)
-        assert (tk_node["number of blocks"].grid_info() != {}) == (not own)
-        assert (notebook.tab(tab, "state") == "hidden") == (not own)
+        assert tk_node["number of blocks"].grid_info() != {}
