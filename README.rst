@@ -38,8 +38,10 @@ Features
 
 * The shear viscosity by Green-Kubo and from the Helfand moments, averaging the
   five independent shear components of the pressure tensor.
-* Runs its own MD several times, or analyzes MD run earlier in the flowchart or in
+* Analyzes MD run earlier in the flowchart -- independent runs in a Loop -- or in
   other jobs, from the ``md.h5md`` files the LAMMPS step writes.
+* Gives the 95% confidence interval from Student's t, checks that the components
+  agree, and reports the state (temperature, pressure, volume and density).
 * Checks before the job runs that the MD samples the pressure tensor often enough.
 * Passes its result to a later Diffusivity step for the Yeh-Hummer correction.
 

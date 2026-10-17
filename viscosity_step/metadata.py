@@ -2,6 +2,8 @@
 
 """This file contains metadata describing the results from Viscosity"""
 
+from seamm_md_analysis.step_support import state_results
+
 metadata = {}
 
 """Description of the computational models for Viscosity.
@@ -161,18 +163,7 @@ metadata["results"] = {
         "type": "float",
         "units": "mPa*s",
     },
-    "T": {
-        "description": "The mean temperature of the MD",
-        "dimensionality": "scalar",
-        "type": "float",
-        "units": "K",
-    },
-    "V": {
-        "description": "The mean volume of the cell",
-        "dimensionality": "scalar",
-        "type": "float",
-        "units": "Å^3",
-    },
+    **state_results,
     "nruns": {
         "description": "The number of runs or blocks averaged",
         "dimensionality": "scalar",
