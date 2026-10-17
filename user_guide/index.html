@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>User Guide &#8212; SEAMM Viscosity Plug-in 2026.10.15.1 documentation</title>
+    <title>User Guide &#8212; SEAMM Viscosity Plug-in 2026.10.17 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=811540ec"></script>
+    <script src="../_static/documentation_options.js?v=fed69469"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.10.15.1" />
+  <meta name="docsearch:version" content="2026.10.17" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -530,54 +530,88 @@ data, two rising exponentials.</p>
 of the shear stress (Helfand, 1960), starting once the correlations have decayed.</p>
 </dd>
 </dl>
-<p>Each value is fitted to the average over the runs. Its error, given as a 95%
-interval (twice the standard error), comes from the spread of the values fitted to
-each run separately, so at least two runs (or blocks) are needed for errors, and more
-give better ones.</p>
 <p>The mean of the shear stress of a fluid is zero, so it is not subtracted from the
 series: subtracting the mean of a finite run lowers the correlation function at every
 time and biases the viscosity low. For the same reason a solid, or a system under
 shear stress, does not have a viscosity that this step can calculate.</p>
-<p>The Green-Kubo average is the result: it is stored as the property
-<code class="docutils literal notranslate"><span class="pre">viscosity#Green-Kubo#&lt;model&gt;</span></code> (with its standard error), can be put in variables
-and tables, and is passed to later steps. A Diffusivity step after it uses it for the
-Yeh-Hummer correction of the diffusion coefficients. The value from the Helfand
-moments is stored as <code class="docutils literal notranslate"><span class="pre">viscosity#Helfand#&lt;model&gt;</span></code>. The step also writes plots of the
-correlation functions, the Green-Kubo integrals and the Helfand moments.</p>
 <p>The step needs a periodic system, since the pressure is divided by the volume of the
-cell; it stops before running any MD if the structure is not periodic. It reads the
+cell; it stops before the MD runs if the structure is not periodic. It reads the
 pressure tensor, the temperature and the volume from the <code class="docutils literal notranslate"><span class="pre">md.h5md</span></code> file that the
 LAMMPS step writes for each MD run.</p>
 <section id="where-the-md-comes-from">
 <h2>Where the MD comes from<a class="headerlink" href="#where-the-md-comes-from" title="Link to this heading">#</a></h2>
-<p><strong>MD to analyze</strong> chooses where the MD comes from:</p>
+<p>The step analyzes MD that ran before it in the flowchart, or the <code class="docutils literal notranslate"><span class="pre">md.h5md</span></code> files of
+earlier runs. For independent runs, put the MD in a Loop – in parallel, with each
+run starting from the same structure (“Discard the structure” in the MD sub-steps)
+and new velocities – and analyze “the last MD run of each loop iteration”, the
+default. A typical flowchart:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Model Chemistry (FF@...), Packmol, minimization
+NPT equilibration; Set Cell to its mean volume; NVT equilibration
+Loop over the replicas (parallel)
+    LAMMPS: velocities, NVT decorrelation, NVT production
+Viscosity
+Diffusivity
+</pre></div>
+</div>
+<p><strong>MD to analyze</strong> chooses the runs:</p>
 <dl class="simple">
-<dt>run the MD in the sub-flowchart</dt><dd><p>The step runs its sub-flowchart, usually a LAMMPS step, the given number of times,
-and the errors come from the spread of the runs. If the last MD sub-step does not
-sample the pressure tensor often enough, the step turns it on, every 5 fs, with a
-note in the output.</p>
+<dt>the last MD run of each loop iteration</dt><dd><p>The last MD run of each iteration of the loop around the MD, analyzed as
+independent runs; without a loop, the one MD run before the step. This is the
+default.</p>
 </dd>
 <dt>the last MD run</dt><dd><p>The last MD run earlier in the flowchart that sampled the pressure tensor. One
-production run can feed several analysis steps, such as Viscosity and Diffusivity,
-and the sub-flowchart is not used.</p>
-</dd>
-<dt>the last MD run of each loop iteration</dt><dd><p>For a LAMMPS step inside a Loop: the run of each iteration, analyzed as
-independent runs.</p>
+production run can feed several analysis steps, such as Viscosity and
+Diffusivity.</p>
 </dd>
 <dt>files</dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">md.h5md</span></code> files given, each an independent run; <code class="docutils literal notranslate"><span class="pre">job://&lt;n&gt;/&lt;path&gt;</span></code> reads a
 file of job <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
 </dd>
 </dl>
-<p>A single run is divided into <strong>Blocks for errors from one run</strong> (5 by default),
-analyzed separately to estimate the errors. Each block must be much longer than the
-correlation time, and have at least 2000 samples. Before the job runs, the step checks
-that the MD before it samples the pressure tensor often enough, and the job does not
-start if it does not.</p>
-<p>A typical flowchart for a liquid equilibrates it with NPT, then runs a long NVT
-production run that samples the pressure tensor every 5 fs and the centres of mass of
-the molecules, followed by Viscosity and then Diffusivity, both analyzing that run.
-For water, runs of a few nanoseconds are needed for the viscosity to within a few
-percent.</p>
+<p>The MD must sample the pressure tensor (“Sample the pressure tensor” in the LAMMPS
+NVE, NVT and NPT sub-steps) at least every 5 fs. Checking the flowchart before it runs
+reports what is missing, with a fix that turns the sampling on, and also warns when
+the analysis is inside the loop holding its MD, when the loop changes the temperature
+or pressure (the runs are then not replicas of one state), or when the thermostat
+changes the dynamics (Langevin, Andersen) or there is none (NVE). Before the MD runs,
+the step warns if the system is small for the analysis (fewer than about 200
+molecules, or a cell narrow for the molecules).</p>
+<p>The viscosity is a collective property: it does not average over the molecules, so a
+larger box does not make it more precise. Use a box that is just large enough, and
+spend the time on independent runs, each a few hundred picoseconds or more; for water,
+runs adding up to a few nanoseconds give the viscosity to within a few percent.</p>
+</section>
+<section id="convergence-and-errors">
+<h2>Convergence and errors<a class="headerlink" href="#convergence-and-errors" title="Link to this heading">#</a></h2>
+<p>Each value is fitted to the average over the runs. Its error comes from the spread of
+the values fitted to each run separately, so at least two runs are needed for errors,
+and more give better ones. A single run is divided into <strong>Blocks for errors from one
+run</strong> (5 by default), which are analyzed separately instead; each block must be much
+longer than the correlation time, and have at least 2000 samples.</p>
+<p>The table gives the 95% confidence interval: Student’s t with n - 1 degrees of
+freedom (2.78 for 5 runs) times the standard error over the runs or blocks, and says
+so under the table. The value stored and passed to later steps carries the standard
+error, which the output also gives.</p>
+<p>For an isotropic run – a cubic cell with nothing directional in it – the viscosity
+is one value, the average of the five shear components within each run, and a line
+checks that the components agree within their errors (χ²). Otherwise the components
+are given in the table too. The value of each component, and of each run or block,
+are in the detailed output.</p>
+</section>
+<section id="results">
+<h2>Results<a class="headerlink" href="#results" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>the shear viscosity by Green-Kubo, with its standard error, stored as the property
+<code class="docutils literal notranslate"><span class="pre">viscosity#Green-Kubo#&lt;model&gt;</span></code>; it can be put in variables and tables, and is
+passed to later steps: a Diffusivity step after it uses it for the Yeh-Hummer
+correction of the diffusion coefficients;</p></li>
+<li><p>the viscosity from the Helfand moments, stored as <code class="docutils literal notranslate"><span class="pre">viscosity#Helfand#&lt;model&gt;</span></code>;</p></li>
+<li><p>the state of the runs: temperature, pressure, volume and density with their errors,
+and for runs at constant volume the equilibrium density at the target pressure when
+an NPT run before them gives the bulk modulus;</p></li>
+<li><p>the number of runs or blocks.</p></li>
+</ul>
+<p>The step also writes plots of the correlation functions, the Green-Kubo integrals and
+the Helfand moments.</p>
 </section>
 <section id="index">
 <h2>Index<a class="headerlink" href="#index" title="Link to this heading">#</a></h2>
@@ -635,6 +669,8 @@ percent.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-the-md-comes-from">Where the MD comes from</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#convergence-and-errors">Convergence and errors</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#results">Results</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#index">Index</a></li>
 </ul>
   </nav></div>

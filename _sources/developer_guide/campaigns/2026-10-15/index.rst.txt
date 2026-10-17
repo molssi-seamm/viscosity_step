@@ -19,3 +19,6 @@ In brief, the step:
   5 fs;
 * publishes the Green-Kubo average in the variable ``_viscosity`` for a following
   Diffusivity step.
+
+Phase 8 (2026-10-17) retired the step's own MD: the MD now runs before the step, in a
+Loop for independent runs, and the step only analyzes it.
